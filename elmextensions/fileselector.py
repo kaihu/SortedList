@@ -16,6 +16,7 @@ from efl import ecore
 
 import os
 import math
+from collections import deque
 from .easythreading import ThreadedFunction
 
 EXPAND_BOTH = EVAS_HINT_EXPAND, EVAS_HINT_EXPAND
@@ -74,7 +75,7 @@ class FileSelector(Box):
         self.focusedEntry = None
         self.sortReverse = False
         self.addingHidden = False
-        self.pendingFiles = []
+        self.pendingFiles = deque()
         self.currentSubFolders = []
         self.currentFiles = []
 
@@ -333,8 +334,8 @@ class FileSelector(Box):
     def populateFile(self):
         pen_len = len(self.pendingFiles)
         if pen_len:
-            for i in range(int(math.sqrt(pen_len))):
-                ourPath, d, isDir = self.pendingFiles.pop(i)
+            for _ in range(int(math.sqrt(pen_len))):
+                ourPath, d, isDir = self.pendingFiles.popleft()
                 self.packFileFolder(ourPath, d, isDir)
 
         #else:
@@ -345,7 +346,7 @@ class FileSelector(Box):
     def populateFiles(self, ourPath):
         self.autocompleteHover.hover_end()
 
-        del self.pendingFiles[:]
+        self.pendingFiles.clear()
 
         if ourPath[:-1] != "/":
             ourPath = ourPath + "/"
